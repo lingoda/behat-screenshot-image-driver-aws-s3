@@ -11,8 +11,10 @@ class AwsS3 implements ImageDriverInterface
     const CONFIG_PARAM_BUCKET = 'bucket';
     const CONFIG_PARAM_VERSION = 'version';
     const CONFIG_PARAM_REGION = 'region';
-    const CONFIG_PARAM_CREDENTIALS = 'credentials';
-    const CONFIG_PARAM_CLIENT = 'client';
+    const CONFIG_PARAM_CREDENTIALS_KEY = 'credentials_key';
+    const CONFIG_PARAM_CREDENTIALS_SECRET = 'credentials_secret';
+    const CONFIG_PARAM_CREDENTIALS_TOKEN = 'credentials_token';
+    const CONFIG_PARAM_CLIENT_FACTORY = 'client_factory';
     /**
      * @var S3Client
      */
@@ -32,15 +34,10 @@ class AwsS3 implements ImageDriverInterface
                 ->scalarNode(self::CONFIG_PARAM_BUCKET)->isRequired()->end()
                 ->scalarNode(self::CONFIG_PARAM_VERSION)->defaultValue('latest')->end()
                 ->scalarNode(self::CONFIG_PARAM_REGION)->isRequired()->end()
-                ->arrayNode(self::CONFIG_PARAM_CREDENTIALS)
-                    ->defaultNull()
-                    ->children()
-                        ->scalarNode('key')->isRequired()->end()
-                        ->scalarNode('secret')->isRequired()->end()
-                        ->scalarNode('token')->end()
-                    ->end()
-                ->end()
-                ->scalarNode(self::CONFIG_PARAM_CLIENT)->isRequired()->defaultValue(S3Client::CLASS)->end()
+                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_KEY)->end()
+                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_SECRET)->end()
+                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_TOKEN)->end()
+                ->scalarNode(self::CONFIG_PARAM_CLIENT_FACTORY)->defaultNull()->end()
             ->end();
     }
 
@@ -54,8 +51,18 @@ class AwsS3 implements ImageDriverInterface
 
         $version = $config[self::CONFIG_PARAM_VERSION];
         $region = $config[self::CONFIG_PARAM_REGION];
-        $credentials = $config[self::CONFIG_PARAM_CREDENTIALS];
-        $clientClass = $config[self::CONFIG_PARAM_CLIENT];
+        $credentials = null;
+        if ($config[self::CONFIG_PARAM_CREDENTIALS_KEY] && $config[self::CONFIG_PARAM_CREDENTIALS_SECRET]) {
+            $credentials = [
+                'key' => $config[self::CONFIG_PARAM_CREDENTIALS_KEY],
+                'secret' => $config[self::CONFIG_PARAM_CREDENTIALS_SECRET],
+                'token' => $config[self::CONFIG_PARAM_CREDENTIALS_TOKEN],
+            ];
+        }
+        $clientFactory = $config[self::CONFIG_PARAM_CLIENT_FACTORY] ?: [$this, 'createClient'];
+        if (!is_callable($clientFactory)) {
+            throw new \RuntimeException('Invalid S3 API client factory callback');
+        }
 
         $args = [
             'version' => $version,
@@ -63,7 +70,7 @@ class AwsS3 implements ImageDriverInterface
             'credentials' => $credentials,
         ];
 
-        $this->api = new S3Client($args);
+        $this->api = call_user_func($clientFactory, $args);
     }
 
     /**
@@ -77,5 +84,15 @@ class AwsS3 implements ImageDriverInterface
         $result = $this->api->upload($this->bucket, $filename, $binaryImage, 'public-read');
 
         return $result['ObjectURL'];
+    }
+
+    /**
+     * @param array $args
+     *
+     * @return S3Client
+     */
+    public function createClient($args)
+    {
+        return new S3Client($args);
     }
 }

@@ -7,22 +7,22 @@ use Aws\Result;
 use Aws\S3\S3Client;
 
 /**
- * Class MockClient
+ * Class MockClientFactory
  */
-class MockClient extends S3Client
+class MockClientFactory
 {
     /**
-     * MockClient constructor.
-     *
      * @param array $args
+     *
+     * @return S3Client
      */
-    public function __construct(array $args)
+    public static function getClient($args)
     {
         $handler = new MockHandler();
         $handler->append(new Result(['ObjectURL' => 'https://example.com/test.png']));
 
         $args['handler'] = $handler;
 
-        parent::__construct($args);
+        return new S3Client($args);
     }
 }

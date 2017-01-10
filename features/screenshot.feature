@@ -77,7 +77,9 @@ Feature: Taking screenshot
               aws_s3:
                 bucket: test_screenshot
                 region: eu-west-1
-                client: Bex\Behat\ScreenshotExtension\Driver\Tests\MockClient
+                credentials_key: asd
+                credentials_secret: bus
+                client_factory: Bex\Behat\ScreenshotExtension\Driver\Tests\MockClientFactory::getClient
       """
     When I run Behat
     Then I should see a failing test

@@ -30,7 +30,9 @@ default:
           bucket: BUCKET # Required
           region: REGION # Required
           version: latest # Default
-          credentials: ~ # Possible values: false or { key: 'key', secret: 'secret' }
+          credentials_key: AWS_S3_KEY # Optional
+          credentials_secret: AWS_S3_SECRET # Optional
+          credentials_token: AWS_S3_TOKEN # Optional
 ```
 
 Usage
