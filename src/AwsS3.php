@@ -23,6 +23,10 @@ class AwsS3 implements ImageDriverInterface
      * @var string
      */
     private $bucket;
+    /**
+     * @var string
+     */
+    private $namespace;
 
     /**
      * @param  ArrayNodeDefinition $builder
@@ -74,6 +78,8 @@ class AwsS3 implements ImageDriverInterface
         ];
 
         $this->api = call_user_func($clientFactory, $args);
+
+        $this->namespace = sprintf('%d%04d', time(), rand(0, 9999));
     }
 
     /**
@@ -84,7 +90,8 @@ class AwsS3 implements ImageDriverInterface
      */
     public function upload($binaryImage, $filename)
     {
-        $result = $this->api->upload($this->bucket, $filename, $binaryImage, 'public-read');
+        $path = join('/', [$this->namespace, $filename]);
+        $result = $this->api->upload($this->bucket, $path, $binaryImage, 'public-read');
 
         return $result['ObjectURL'];
     }
