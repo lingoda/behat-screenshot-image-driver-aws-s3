@@ -34,9 +34,9 @@ class AwsS3 implements ImageDriverInterface
                 ->scalarNode(self::CONFIG_PARAM_BUCKET)->isRequired()->end()
                 ->scalarNode(self::CONFIG_PARAM_VERSION)->defaultValue('latest')->end()
                 ->scalarNode(self::CONFIG_PARAM_REGION)->isRequired()->end()
-                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_KEY)->end()
-                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_SECRET)->end()
-                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_TOKEN)->end()
+                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_KEY)->defaultNull()->end()
+                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_SECRET)->defaultNull()->end()
+                ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_TOKEN)->defaultNull()->end()
                 ->scalarNode(self::CONFIG_PARAM_CLIENT_FACTORY)->defaultNull()->end()
             ->end();
     }
