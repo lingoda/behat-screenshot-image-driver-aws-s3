@@ -58,7 +58,10 @@ class AwsS3 implements ImageDriverInterface
                 'secret' => $config[self::CONFIG_PARAM_CREDENTIALS_SECRET],
                 'token' => $config[self::CONFIG_PARAM_CREDENTIALS_TOKEN],
             ];
+        } elseif ($config[self::CONFIG_PARAM_CREDENTIALS_KEY] === false) {
+            $credentials = false;
         }
+
         $clientFactory = $config[self::CONFIG_PARAM_CLIENT_FACTORY] ?: [$this, 'createClient'];
         if (!is_callable($clientFactory)) {
             throw new \RuntimeException('Invalid S3 API client factory callback');

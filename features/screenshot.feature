@@ -77,8 +77,7 @@ Feature: Taking screenshot
               aws_s3:
                 bucket: test_screenshot
                 region: eu-west-1
-                credentials_key: asd
-                credentials_secret: bus
+                credentials_key: false
                 client_factory: Bex\Behat\ScreenshotExtension\Driver\Tests\MockClientFactory::getClient
       """
     When I run Behat
