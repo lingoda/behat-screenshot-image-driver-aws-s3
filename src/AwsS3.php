@@ -15,6 +15,7 @@ class AwsS3 implements ImageDriverInterface
     const CONFIG_PARAM_CREDENTIALS_SECRET = 'credentials_secret';
     const CONFIG_PARAM_CREDENTIALS_TOKEN = 'credentials_token';
     const CONFIG_PARAM_CLIENT_FACTORY = 'client_factory';
+    const CONFIG_PARAM_NAMESPACE = 'namespace';
     /**
      * @var S3Client
      */
@@ -42,6 +43,7 @@ class AwsS3 implements ImageDriverInterface
                 ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_SECRET)->defaultNull()->end()
                 ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_TOKEN)->defaultNull()->end()
                 ->scalarNode(self::CONFIG_PARAM_CLIENT_FACTORY)->defaultNull()->end()
+                ->scalarNode(self::CONFIG_PARAM_NAMESPACE)->defaultNull()->end()
             ->end();
     }
 
@@ -53,6 +55,7 @@ class AwsS3 implements ImageDriverInterface
     {
         $this->bucket = $config[self::CONFIG_PARAM_BUCKET];
 
+        $this->namespace = $config[self::CONFIG_PARAM_NAMESPACE] ?: sprintf('%d%04d', time(), rand(0, 9999));
         $version = $config[self::CONFIG_PARAM_VERSION];
         $region = $config[self::CONFIG_PARAM_REGION];
         $credentials = null;
@@ -78,8 +81,6 @@ class AwsS3 implements ImageDriverInterface
         ];
 
         $this->api = call_user_func($clientFactory, $args);
-
-        $this->namespace = sprintf('%d%04d', time(), rand(0, 9999));
     }
 
     /**

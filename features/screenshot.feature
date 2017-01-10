@@ -79,6 +79,7 @@ Feature: Taking screenshot
                 region: eu-west-1
                 credentials_key: false
                 client_factory: Bex\Behat\ScreenshotExtension\Driver\Tests\MockClientFactory::getClient
+                namespace: '1234'
       """
     When I run Behat
     Then I should see a failing test
