@@ -55,7 +55,8 @@ class AwsS3 implements ImageDriverInterface
     {
         $this->bucket = $config[self::CONFIG_PARAM_BUCKET];
 
-        $this->namespace = $config[self::CONFIG_PARAM_NAMESPACE] ?: sprintf('%d%04d', time(), rand(0, 9999));
+        $this->namespace = $config[self::CONFIG_PARAM_NAMESPACE]
+            ?: sprintf('%s-%04d', date('Y-m-d_H-i-s'), rand(0, 9999));
         $version = $config[self::CONFIG_PARAM_VERSION];
         $region = $config[self::CONFIG_PARAM_REGION];
         $credentials = null;
