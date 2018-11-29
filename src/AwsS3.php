@@ -111,9 +111,24 @@ class AwsS3 implements ImageDriverInterface
     {
         $path = join('/', [$this->namespace, $filename]);
         $options = ['params' => ['ContentType' => 'image/png']];
-        $result = $this->api->upload($this->bucket, $path, $binaryImage, 'public-read', $options);
 
-        return $result['ObjectURL'];
+        $result = $this->api->upload($this->bucket, $path, $binaryImage, $this->visibility, $options);
+
+        if ('public-read' === $this->visibility) {
+            return $result['ObjectURL'];
+        }
+
+        $command = $this->api->getCommand('GetObject', [
+            'Bucket' => $this->bucket,
+            'Key' => $path,
+        ]);
+
+        return $this->api
+            ->createPresignedRequest(
+                $command,
+                sprintf('+%d minutes', $this->timeout)
+            )
+            ->getUri();
     }
 
     /**
