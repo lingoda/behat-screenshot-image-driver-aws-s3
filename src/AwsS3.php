@@ -16,6 +16,7 @@ class AwsS3 implements ImageDriverInterface
     const CONFIG_PARAM_CREDENTIALS_TOKEN = 'credentials_token';
     const CONFIG_PARAM_CLIENT_FACTORY = 'client_factory';
     const CONFIG_PARAM_NAMESPACE = 'namespace';
+    const CONFIG_PARAM_TIMEOUT = 'timeout';
     /**
      * @var S3Client
      */
@@ -28,6 +29,10 @@ class AwsS3 implements ImageDriverInterface
      * @var string
      */
     private $namespace;
+    /**
+     * @var int
+     */
+    private $timeout;
 
     /**
      * @param  ArrayNodeDefinition $builder
@@ -44,6 +49,7 @@ class AwsS3 implements ImageDriverInterface
                 ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_TOKEN)->defaultNull()->end()
                 ->scalarNode(self::CONFIG_PARAM_CLIENT_FACTORY)->defaultNull()->end()
                 ->scalarNode(self::CONFIG_PARAM_NAMESPACE)->defaultNull()->end()
+                ->integerNode(self::CONFIG_PARAM_TIMEOUT)->defaultValue(30)->end()
             ->end();
     }
 
@@ -53,6 +59,7 @@ class AwsS3 implements ImageDriverInterface
      */
     public function load(ContainerBuilder $container, array $config)
     {
+        $this->timeout = $config[self::CONFIG_PARAM_TIMEOUT];
         $this->bucket = $config[self::CONFIG_PARAM_BUCKET];
 
         $this->namespace = $config[self::CONFIG_PARAM_NAMESPACE]
