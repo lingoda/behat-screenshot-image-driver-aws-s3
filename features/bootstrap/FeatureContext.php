@@ -29,7 +29,7 @@ class FeatureContext implements Context, SnippetAcceptingContext
      */
     public function iShouldSeeTheDummyImageUrl()
     {
-        $message = 'https://s3-eu-west-1.amazonaws.com/test_screenshot/1234/features_feature_feature_2.png';
+        $message = 'https://s3.eu-west-1.amazonaws.com/test_screenshot/1234/features_feature_feature_2.png';
 
         $output = $this->testRunnerContext->getStandardOutputMessage() .
             $this->testRunnerContext->getStandardErrorMessage();
