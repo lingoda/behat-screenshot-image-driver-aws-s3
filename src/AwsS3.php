@@ -16,6 +16,8 @@ class AwsS3 implements ImageDriverInterface
     const CONFIG_PARAM_CREDENTIALS_TOKEN = 'credentials_token';
     const CONFIG_PARAM_CLIENT_FACTORY = 'client_factory';
     const CONFIG_PARAM_NAMESPACE = 'namespace';
+    const CONFIG_PARAM_TIMEOUT = 'timeout';
+    const CONFIG_PARAM_VISIBILITY = 'visibility';
     /**
      * @var S3Client
      */
@@ -28,6 +30,14 @@ class AwsS3 implements ImageDriverInterface
      * @var string
      */
     private $namespace;
+    /**
+     * @var int
+     */
+    private $timeout;
+    /**
+     * @var string
+     */
+    private $visibility;
 
     /**
      * @param  ArrayNodeDefinition $builder
@@ -44,6 +54,11 @@ class AwsS3 implements ImageDriverInterface
                 ->scalarNode(self::CONFIG_PARAM_CREDENTIALS_TOKEN)->defaultNull()->end()
                 ->scalarNode(self::CONFIG_PARAM_CLIENT_FACTORY)->defaultNull()->end()
                 ->scalarNode(self::CONFIG_PARAM_NAMESPACE)->defaultNull()->end()
+                ->integerNode(self::CONFIG_PARAM_TIMEOUT)->defaultValue(30)->end()
+                ->enumNode(self::CONFIG_PARAM_VISIBILITY)
+                    ->values(['public-read', 'private'])
+                    ->defaultValue('public-read')
+                ->end()
             ->end();
     }
 
@@ -53,7 +68,9 @@ class AwsS3 implements ImageDriverInterface
      */
     public function load(ContainerBuilder $container, array $config)
     {
+        $this->timeout = $config[self::CONFIG_PARAM_TIMEOUT];
         $this->bucket = $config[self::CONFIG_PARAM_BUCKET];
+        $this->visibility = $config[self::CONFIG_PARAM_VISIBILITY];
 
         $this->namespace = $config[self::CONFIG_PARAM_NAMESPACE]
             ?: sprintf('%s-%04d', date('Y-m-d_H-i-s'), rand(0, 9999));
@@ -94,9 +111,24 @@ class AwsS3 implements ImageDriverInterface
     {
         $path = join('/', [$this->namespace, $filename]);
         $options = ['params' => ['ContentType' => 'image/png']];
-        $result = $this->api->upload($this->bucket, $path, $binaryImage, 'public-read', $options);
 
-        return $result['ObjectURL'];
+        $result = $this->api->upload($this->bucket, $path, $binaryImage, $this->visibility, $options);
+
+        if ('public-read' === $this->visibility) {
+            return $result['ObjectURL'];
+        }
+
+        $command = $this->api->getCommand('GetObject', [
+            'Bucket' => $this->bucket,
+            'Key' => $path,
+        ]);
+
+        return $this->api
+            ->createPresignedRequest(
+                $command,
+                sprintf('+%d minutes', $this->timeout)
+            )
+            ->getUri();
     }
 
     /**
